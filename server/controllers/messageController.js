@@ -36,10 +36,11 @@ const getMessage = async (req, res) => {
       if (!isValid) return res.status(401).json("Invalid Password");
     }
 
-    message.isRead = true;
+    const content = message.content;
+
     await message.deleteOne();
 
-    res.json({ content: message.content });
+    res.json({ content });
   } catch (error) {
     res.status(500).json("Internal Server Error");
   }
