@@ -1,49 +1,58 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Key, AlertCircle, Atom } from "lucide-react";
+import { Key, Atom, AlertCircle } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ViewMessage = () => {
   const { id } = useParams();
   const [content, setContent] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+  const [isMessageCollapsed, setIsMessageCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [showDestroyAnimation, setShowDestroyAnimation] = useState(false);
   const [messageViewed, setMessageViewed] = useState(false);
   const [countdown, setCountdown] = useState(10);
 
-  const fetchMessage = async (e) => {
-    if (e) {
-      e.preventDefault();
-    }
-
+  const fetchMessage = async (passwordAttempt = "") => {
     setIsLoading(true);
-    setError("");
 
     try {
       const response = await fetch(
-        `/api/messages/${id}${password ? `?password=${password}` : ""}`
+        `/api/messages/${id}${
+          passwordAttempt ? `?password=${passwordAttempt}` : ""
+        }`
       );
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error("Invalid password");
+          setIsPasswordRequired(true);
+          return false;
         } else if (response.status === 404) {
-          throw new Error("Message has already collapsed into the void");
+          setIsMessageCollapsed(true);
+          return false;
         } else {
-          throw new Error("Failed to fetch message");
+          toast.error("Failed to fetch message");
+          return false;
         }
       }
 
       const data = await response.json();
       setContent(data.content);
+      setIsPasswordRequired(false);
+      return true;
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
+      return false;
     } finally {
       setIsLoading(false);
-      setInitialLoadComplete(true);
     }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    await fetchMessage(password);
   };
 
   useEffect(() => {
@@ -75,22 +84,30 @@ const ViewMessage = () => {
     };
   }, [messageViewed]);
 
-  if (!initialLoadComplete) {
+  if (isMessageCollapsed) {
     return (
       <div className="min-h-screen hero-gradient flex items-center justify-center px-4">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full animate-pulse-slow" />
-            <div className="absolute inset-2 bg-gray-900 rounded-full" />
-            <div className="absolute inset-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full animate-spin-slow" />
+        <div className="max-w-md w-full glass-card p-8 text-center">
+          <div className="mb-6">
+            <div className="w-20 h-20 mx-auto relative">
+              <div className="absolute inset-0 bg-red-500/20 rounded-full animate-pulse" />
+              <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-10 h-10 text-red-400" />
+              </div>
+            </div>
           </div>
-          <p className="text-gray-400">Scanning quantum coordinates...</p>
+          <h2 className="text-2xl font-bold text-red-400 mb-4">
+            Message Destroyed
+          </h2>
+          <p className="text-gray-400">
+            This message has been consumed by the void.
+          </p>
         </div>
       </div>
     );
   }
 
-  if (error === "Invalid password") {
+  if (isPasswordRequired) {
     return (
       <div className="min-h-screen hero-gradient py-20 px-4">
         <div className="max-w-md mx-auto">
@@ -102,7 +119,7 @@ const ViewMessage = () => {
               </h2>
             </div>
 
-            <form onSubmit={fetchMessage} className="space-y-6">
+            <form onSubmit={handlePasswordSubmit} className="space-y-6">
               <div className="relative">
                 <input
                   type="password"
@@ -128,37 +145,18 @@ const ViewMessage = () => {
                   "Access Message"
                 )}
               </button>
-
-              {error && (
-                <div className="flex items-center space-x-2 text-red-400 bg-red-400/10 p-4 rounded-lg">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>{error}</span>
-                </div>
-              )}
             </form>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen hero-gradient flex items-center justify-center px-4">
-        <div className="max-w-md w-full glass-card p-8 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 mx-auto relative">
-              <div className="absolute inset-0 bg-red-500/20 rounded-full animate-pulse" />
-              <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-10 h-10 text-red-400" />
-              </div>
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-red-400 mb-4">{error}</h2>
-          <p className="text-gray-400">
-            This message has been consumed by the void.
-          </p>
-        </div>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
       </div>
     );
   }
@@ -222,6 +220,15 @@ const ViewMessage = () => {
             </div>
           </div>
         )}
+
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          closeOnClick
+          pauseOnHover
+          draggable
+        />
       </div>
     </div>
   );

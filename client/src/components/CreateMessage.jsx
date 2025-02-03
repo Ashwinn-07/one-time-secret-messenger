@@ -1,18 +1,41 @@
 import React, { useState } from "react";
-import { Clock, Key, Send, AlertCircle, Copy, Sparkles } from "lucide-react";
+import { Clock, Key, Send, Sparkles } from "lucide-react";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const CreateMessage = () => {
   const [content, setContent] = useState("");
   const [password, setPassword] = useState("");
   const [hours, setHours] = useState("");
   const [messageId, setMessageId] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const validateForm = () => {
+    if (!content.trim()) {
+      toast.error("Message content cannot be empty");
+      return false;
+    }
+
+    if (password && password.length < 4) {
+      toast.error("Password must be at least 4 characters long");
+      return false;
+    }
+
+    if (hours && (isNaN(hours) || parseInt(hours) <= 0)) {
+      toast.error("Hours must be a positive number");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validateForm()) return;
+
     setIsLoading(true);
     try {
       const res = await axios.post("/api/messages", {
@@ -21,9 +44,9 @@ const CreateMessage = () => {
         hours,
       });
       setMessageId(res.data._id);
-      setError("");
+      toast.success("Quantum message created successfully!");
     } catch (err) {
-      setError("Failed to create message");
+      toast.error(err.response?.data?.message || "Failed to create message");
     } finally {
       setIsLoading(false);
     }
@@ -33,6 +56,7 @@ const CreateMessage = () => {
     navigator.clipboard.writeText(
       `${window.location.origin}/message/${messageId}`
     );
+    toast.success("Link copied to clipboard!");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -55,7 +79,6 @@ const CreateMessage = () => {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Enter your secret message..."
-                  required
                   className="w-full h-48 bg-black/20 border border-white/10 rounded-xl p-4 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
                 />
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600/20 to-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
@@ -106,13 +129,6 @@ const CreateMessage = () => {
                   </>
                 )}
               </button>
-
-              {error && (
-                <div className="flex items-center space-x-2 text-red-400 bg-red-400/10 p-4 rounded-lg">
-                  <AlertCircle className="w-5 h-5" />
-                  <span>{error}</span>
-                </div>
-              )}
             </form>
           </div>
         ) : (
@@ -135,7 +151,7 @@ const CreateMessage = () => {
                 onClick={copyToClipboard}
                 className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
               >
-                <Copy className={`w-5 h-5 ${copied ? "text-green-400" : ""}`} />
+                Copy
               </button>
             </div>
 
@@ -146,6 +162,14 @@ const CreateMessage = () => {
           </div>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </div>
   );
 };
