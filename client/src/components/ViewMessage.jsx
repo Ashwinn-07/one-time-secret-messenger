@@ -14,6 +14,19 @@ const ViewMessage = () => {
   const [showDestroyAnimation, setShowDestroyAnimation] = useState(false);
   const [messageViewed, setMessageViewed] = useState(false);
   const [countdown, setCountdown] = useState(10);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const renderParticle = (index) => (
+    <div
+      key={index}
+      className={`particle absolute w-1 h-1 bg-purple-500 rounded-full opacity-50`}
+      style={{
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 100}%`,
+        animationDelay: `${Math.random() * 2}s`,
+      }}
+    />
+  );
 
   const fetchMessage = async (passwordAttempt = "") => {
     setIsLoading(true);
@@ -69,7 +82,12 @@ const ViewMessage = () => {
           if (prev <= 1) {
             clearInterval(intervalId);
             timeoutId = setTimeout(() => {
+              setIsTransitioning(true);
               setShowDestroyAnimation(true);
+
+              setTimeout(() => {
+                setIsMessageCollapsed(true);
+              }, 5000);
             }, 0);
             return 0;
           }
@@ -86,22 +104,41 @@ const ViewMessage = () => {
 
   if (isMessageCollapsed) {
     return (
-      <div className="min-h-screen hero-gradient flex items-center justify-center px-4">
-        <div className="max-w-md w-full glass-card p-8 text-center">
-          <div className="mb-6">
-            <div className="w-20 h-20 mx-auto relative">
-              <div className="absolute inset-0 bg-red-500/20 rounded-full animate-pulse" />
-              <div className="absolute inset-2 bg-gray-900 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-10 h-10 text-red-400" />
+      <div className="min-h-screen hero-gradient flex items-center justify-center px-4 overflow-hidden">
+        <div className="max-w-md w-full glass-card p-8 text-center relative">
+          {[...Array(20)].map((_, i) => renderParticle(i))}
+
+          <div className="mb-6 relative">
+            <div className="w-32 h-32 mx-auto relative">
+              <div className="absolute inset-0 bg-red-500/20 rounded-full glow-pulse" />
+              <div
+                className="absolute inset-4 bg-purple-500/20 rounded-full glow-pulse"
+                style={{ animationDelay: "0.5s" }}
+              />
+
+              <div className="absolute inset-8 bg-black rounded-full flex items-center justify-center overflow-hidden">
+                <div className="absolute w-full h-full bg-gradient-to-r from-red-500/20 via-purple-500/20 to-blue-500/20 warp-animation" />
+
+                <AlertCircle className="w-8 h-8 text-red-400 relative z-10 warp-animation" />
               </div>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-red-400 mb-4">
-            Message Destroyed
+
+          <h2 className="text-3xl font-bold void-text mb-4 relative">
+            Consumed by the Void
           </h2>
-          <p className="text-gray-400">
-            This message has been consumed by the void.
-          </p>
+
+          <div className="relative">
+            <p className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-red-400 font-medium">
+              This quantum message has collapsed into a singularity,
+              <br />
+              forever lost in the fabric of spacetime.
+            </p>
+
+            <div className="mt-4 text-sm text-gray-400 opacity-75 italic">
+              [Temporal coordinates corrupted]
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -166,7 +203,9 @@ const ViewMessage = () => {
       <div className="max-w-2xl w-full">
         {!showDestroyAnimation ? (
           <div
-            className="glass-card p-8"
+            className={`glass-card p-8 transition-opacity duration-500 ${
+              isTransitioning ? "opacity-0" : "opacity-100"
+            }`}
             onClick={() => !messageViewed && setMessageViewed(true)}
           >
             <div className="flex items-center justify-center mb-8">
@@ -206,9 +245,18 @@ const ViewMessage = () => {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <div className="w-64 h-64 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 animate-pulse-slow blur-2xl opacity-20" />
               </div>
-              <div className="w-32 h-32 rounded-full bg-black border-4 border-purple-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 animate-spin-slow opacity-50" />
-                <div className="absolute inset-2 bg-black rounded-full" />
+              <div className="w-32 h-32 mx-auto relative">
+                <div className="absolute inset-0 bg-red-500/20 rounded-full glow-pulse" />
+                <div
+                  className="absolute inset-4 bg-purple-500/20 rounded-full glow-pulse"
+                  style={{ animationDelay: "0.5s" }}
+                />
+
+                <div className="absolute inset-8 bg-black rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="absolute w-full h-full bg-gradient-to-r from-red-500/20 via-purple-500/20 to-blue-500/20 warp-animation" />
+
+                  <AlertCircle className="w-8 h-8 text-red-400 relative z-10 warp-animation" />
+                </div>
               </div>
               <p className="absolute top-full left-1/2 -translate-x-1/2 mt-8 text-gray-400 text-center">
                 Message has collapsed into the singularity

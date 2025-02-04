@@ -31,6 +31,43 @@
   }
 }
 
+@keyframes warpEffect {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.5) rotate(180deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes particleFloat {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
+@keyframes glowPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -64,4 +101,22 @@
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1rem;
+}
+
+.void-text {
+  background: linear-gradient(to right, #ff4d4d, #7928ca);
+  color: transparent;
+  text-shadow: 0 0 20px rgba(255, 77, 77, 0.3);
+}
+
+.warp-animation {
+  animation: warpEffect 2s ease-in-out infinite;
+}
+
+.particle {
+  animation: particleFloat 3s ease-in-out infinite;
+}
+
+.glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
 }
